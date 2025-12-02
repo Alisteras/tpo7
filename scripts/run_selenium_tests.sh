@@ -1,6 +1,5 @@
 #!/bin/bash
 
 cd ./tests/selenium
-npm i
-npm run test
+python openbmc_auth_tests.py
 cd ../../
