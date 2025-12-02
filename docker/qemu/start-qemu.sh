@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Starting QEMU with OpenBMC..."
 
-IMAGE_FILE=$(ls -t /qemu/romulus/obmc-phosphor-image-romulus-*.static.mtd | head -1)
+IMAGE_FILE=$(ls -t /romulus/obmc-phosphor-image-romulus-*.static.mtd | head -1)
 
 echo "Using image: $IMAGE_FILE"
 
