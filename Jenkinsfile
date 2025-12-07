@@ -55,12 +55,10 @@ pipeline {
 
         stage('API Tests') {
             steps {
-                ansiColor('xterm') {
                     sh '''
                         chmod +x ./scripts/run_pytest_tests.sh
                         ./scripts/run_pytest_tests.sh
                     '''
-                }
             }
 
         }
