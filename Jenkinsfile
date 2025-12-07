@@ -55,6 +55,9 @@ pipeline {
 
         stage('API Tests') {
             steps {
+                sh 'apt install -y python3'
+                sh 'apt install -y python3-pytest'
+                sh 'apt install -y python3-selenium'
                     sh '''
                         chmod +x ./scripts/run_pytest_tests.sh
                         ./scripts/run_pytest_tests.sh
@@ -75,6 +78,7 @@ pipeline {
 
         stage('Load Tests') {
             steps {
+                sh 'apt install -y python3 locust'
                 sh '''
                     chmod +x ./scripts/run_locust_tests.sh
                     ./scripts/run_locust_tests.sh
