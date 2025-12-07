@@ -25,11 +25,30 @@ pipeline {
         }
 
         stage('Initializing QEMU') {
-            steps {
-                sh '''
-                    chmod +x ./scripts/start_qemu.sh
-                    ./scripts/start_qemu.sh &
-                    sleep 60
+            steps{
+                echo 'Start qemu'
+                sh 'rm -rf romulus romulus.zip'
+                sh 'apt update'
+                sh 'apt install -y qemu-system'
+                sh 'apt install -y wget'
+                sh 'apt install -y unzip'
+                sh 'apt install -y expect'
+                sh 'wget https://jenkins.openbmc.org/job/ci-openbmc/lastSuccessfulBuild/distro=ubuntu,label=docker-builder,target=romulus/artifact/openbmc/build/tmp/deploy/images/romulus/*zip*/romulus.zip'
+                sh 'unzip romulus.zip'
+                sh ''' 
+                LATEST_MTD=$(ls romulus/obmc-phosphor-image-romulus-*.static.mtd | sort -V | tail -1)
+                expect -c "
+                log_file -a qemu_result.txt
+                spawn qemu-system-arm -m 256 -M romulus-bmc -nographic -drive file=$LATEST_MTD,format=raw,if=mtd -net nic -net user,hostfwd=:0.0.0.0:2222-:22,hostfwd=:0.0.0.0:2443-:443,hostfwd=udp:0.0.0.0:2623-:623,hostname=qemu
+                sleep 300
+                send "root\r"
+                sleep 4
+                send "0penBmc\r"
+                expect \"root@romulus:\"
+                interact" &
+                QEMU_PID=$!
+                echo "QEMU запущен с PID: $QEMU_PID"
+                echo $QEMU_PID > qemu.pid
                 '''
             }
         }
@@ -61,6 +80,23 @@ pipeline {
                 sh '''
                     chmod +x ./scripts/run_locust_tests.sh
                     ./scripts/run_locust_tests.sh
+                '''
+            }
+        }
+        stage('Stop Qemu') {
+            steps {
+                sh '''
+                    echo "Stop Qemu..."
+                    if [ -f "qemu.pid" ]; then
+                        QEMU_PID=$(cat qemu.pid)
+                        kill $QEMU_PID 2>/dev/null || true
+                        rm -f qemu.pid
+                        echo "Qemu shutted down"
+                    fi
+                    rm -rf romulus/ romulus.zip || true
+                    rm -f *.log *.pid *.json *.csv || true
+                    rm -f qemu.pid image_path.txt config.env || true
+                    du -sh . | awk '{print $1}'
                 '''
             }
         }
