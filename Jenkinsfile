@@ -1,5 +1,10 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'docker:latest'
+            args '--privileged -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
     options {
         skipDefaultCheckout()
     }
@@ -43,11 +48,7 @@ pipeline {
                     '''
                 }
             }
-            post {
-                always {
-                    junit 'reports/pytest-*.xml'
-                }
-            }
+
         }
 
         stage('UI Tests') {
@@ -57,11 +58,7 @@ pipeline {
                     ./scripts/run_selenium_tests.sh
                 '''
             }
-            post {
-                always {
-                    junit 'reports/selenium-*.xml'
-                }
-            }
+
         }
 
         stage('Load Tests') {
@@ -82,15 +79,11 @@ pipeline {
         }
         success {
             echo "ВСЕ ТЕСТЫ ПРОЙДЕНЫ УСПЕШНО"
-            sh '''
-                echo "Отчеты сохранены в:"
-                echo "   - JUnit отчеты: reports/*.xml"
-                echo "   - HTML отчеты: reports/*.html"
-                ls -la reports/ || true
-            '''
+
         }
         failure {
             echo "ТЕСТЫ ЗАВЕРШИЛИСЬ С ОШИБКАМИ"
         }
     }
 }
+
