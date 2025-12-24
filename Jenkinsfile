@@ -60,6 +60,7 @@ pipeline {
                 sh 'apt install -y python3-selenium'
                 sh 'apt install -y python3.13-venv'
                 sh 'apt install -y python3-pip'
+                sh 'pip install pytest-html'
                 sh '''
                         chmod +x ./scripts/run_pytest_tests.sh
                         ./scripts/run_pytest_tests.sh
